@@ -2,20 +2,13 @@ import argparse
 import torch
 import torchvision
 import math
-import matplotlib.pyplot as plt
 
-from src.utils import load_image, img_show
+from src.utils import save_image, ImageDataset
 from src.optimize import run_optim
 from src.constants import device, weight_style, weight_content
 
 
-def main(style_path: str, content_path: str, output_path: str, initial_image: str):
-    torch.cuda.empty_cache()
-    # The images have been loaded for you.
-    style_image = load_image(style_path)
-    content_image = load_image(content_path)
-
-    # Center crop the style_image to match the dimensions of the content image.
+def resize_style_image(style_image: torch.Tensor, content_image: torch.Tensor):
     if style_image.size(dim=1) != 3:
         style_image = style_image.repeat(1, 3, 1, 1)
     if content_image.size(dim=3) > style_image.size(dim=3):
@@ -44,13 +37,25 @@ def main(style_path: str, content_path: str, output_path: str, initial_image: st
         style_image.size() == content_image.size()
     ), "We need to import the style and content images at the same size."
 
-    # Display the original input image: (style image)
-    plt.figure()
-    img_show(style_image, title="Style Img")
+    return style_image
 
-    # Display the content image:
-    plt.figure()
-    img_show(content_image, title="Content Img")
+
+def main(
+    style_path: str,
+    content_path: str,
+    output_path: str,
+    initial_image: str,
+    image_size: list[int],
+):
+    if torch.cuda.is_available():
+        print("Models moved to GPU.")
+        torch.cuda.empty_cache()
+
+    dataset = ImageDataset(image_size)
+
+    style_image = dataset[style_path]
+    content_image = dataset[content_path]
+    style_image = resize_style_image(style_image, content_image)
 
     cnn = torchvision.models.vgg19(pretrained=True).features.to(device).eval()
 
@@ -61,7 +66,7 @@ def main(style_path: str, content_path: str, output_path: str, initial_image: st
     else:
         raise ValueError("Invalid initial image type")
 
-    output = run_optim(
+    output_image = run_optim(
         cnn,
         content_image,
         style_image,
@@ -73,14 +78,7 @@ def main(style_path: str, content_path: str, output_path: str, initial_image: st
         use_style=True,
     )
 
-    fig = plt.figure()
-    img_show(output, title="Output Image")
-    save_image(fig, output_path)
-
-
-def save_image(fig, path: str):
-    fig.savefig(path)
-    print(f"Saved {path}")
+    save_image(output_image, output_path)
 
 
 parser = argparse.ArgumentParser()
@@ -91,9 +89,10 @@ parser.add_argument("--output", type=str, required=True)
 parser.add_argument(
     "--initial_image", type=str, choices=["content", "noise"], default="content"
 )
+parser.add_argument("--image_size", type=int, nargs="+", default=256)
 
 
 if __name__ == "__main__":
     args = parser.parse_args()
 
-    main(args.style, args.content, args.output, args.initial_image)
+    main(args.style, args.content, args.output, args.initial_image, args.image_size)

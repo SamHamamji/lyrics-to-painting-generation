@@ -14,8 +14,6 @@ def run_optim(
     use_content=True,
     use_style=True,
 ):
-    print("Constructing the model…")
-
     #############################
     ### Your code starts here ###
     #############################
