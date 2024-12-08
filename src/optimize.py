@@ -7,7 +7,7 @@ from src.constants import content_default_layers, style_default_layers
 def run_optim(
     cnn: torch.nn.Module,
     content_image: torch.Tensor,
-    style_image: torch.Tensor,
+    style_images: list[torch.Tensor],
     input_image: torch.Tensor,
     steps: int,
     optimizer: torch.optim.LBFGS,
@@ -15,7 +15,7 @@ def run_optim(
     content_weight: torch.types.Number,
 ):
     model, style_loss_errors, content_loss_errors = get_model_and_losses(
-        cnn, style_image, content_image, content_default_layers, style_default_layers
+        cnn, style_images, content_image, content_default_layers, style_default_layers
     )
     input_image.requires_grad_()
     run_step = {"count": 0}

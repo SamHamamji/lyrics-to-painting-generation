@@ -10,7 +10,7 @@ from src.constants import cnn_norm_mean, cnn_norm_std, device
 
 def get_model_and_losses(
     cnn_model: torch.nn.Module,
-    style_image: torch.Tensor,
+    style_images: list[torch.Tensor],
     content_image: torch.Tensor,
     content_layers: list[str],
     style_layers: list[str],
@@ -42,9 +42,10 @@ def get_model_and_losses(
                 content_loss_errors.append(content_loss)
 
             if name in style_layers:
-                style_loss = Style_Error_Loss(model(style_image).detach())
-                model.append(style_loss)
-                style_loss_errors.append(style_loss)
+                for style_image in style_images:
+                    style_loss = Style_Error_Loss(model(style_image).detach())
+                    model.append(style_loss)
+                    style_loss_errors.append(style_loss)
 
         elif isinstance(layer, torch.nn.ReLU):
             model.append(torch.nn.ReLU(inplace=False))

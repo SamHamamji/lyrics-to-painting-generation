@@ -8,7 +8,7 @@ from src.constants import device
 
 
 def main(
-    style_path: str,
+    style_paths: list[str],
     content_path: str,
     output_path: str,
     initial_image: str,
@@ -23,9 +23,10 @@ def main(
 
     dataset = ImageDataset(image_size)
 
-    style_image = dataset[style_path]
     content_image = dataset[content_path]
-    style_image = resize_style_image(style_image, content_image)
+    style_images = list(
+        map(lambda path: resize_style_image(dataset[path], content_image), style_paths)
+    )
 
     cnn = (
         torchvision.models.vgg19(weights=torchvision.models.VGG19_Weights.IMAGENET1K_V1)
@@ -45,7 +46,7 @@ def main(
     output_image = run_optim(
         cnn,
         content_image,
-        style_image,
+        style_images,
         input_image,
         steps,
         optimizer,
@@ -59,7 +60,7 @@ def main(
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--content", type=str, required=True)
-parser.add_argument("--style", type=str, required=True)
+parser.add_argument("--style", type=str, nargs="+", required=True)
 parser.add_argument("--output", type=str, required=True)
 parser.add_argument(
     "--initial_image", type=str, choices=["content", "noise"], default="content"
