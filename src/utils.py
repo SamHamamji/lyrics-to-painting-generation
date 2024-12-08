@@ -25,7 +25,7 @@ class ImageDataset(torch.utils.data.Dataset):
 
 
 def save_image(tensor: torch.Tensor, path: str):
-    np_tensor = (tensor.detach() * 255).byte().squeeze(0).permute(1, 2, 0).numpy()
+    np_tensor = (tensor.detach() * 255).byte().squeeze(0).permute(1, 2, 0).cpu().numpy()
     image = PIL.Image.fromarray(np_tensor)
     image.save(path)
     print(f"Saved {path}")
