@@ -1,6 +1,6 @@
 import torch
 
-from setup_model import get_model_and_losses
+from src.setup_model import get_model_and_losses
 from src.constants import content_default_layers, style_default_layers
 
 
