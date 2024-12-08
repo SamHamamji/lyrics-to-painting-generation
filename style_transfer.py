@@ -26,7 +26,6 @@ def main(
     style_image = dataset[style_path]
     content_image = dataset[content_path]
     style_image = resize_style_image(style_image, content_image)
-    optimizer = get_image_optimizer(content_image)
 
     cnn = (
         torchvision.models.vgg19(weights=torchvision.models.VGG19_Weights.IMAGENET1K_V1)
@@ -40,6 +39,8 @@ def main(
         input_image = torch.rand_like(content_image, device=device)
     else:
         raise ValueError("Invalid initial image type")
+
+    optimizer = get_image_optimizer(input_image)
 
     output_image = run_optim(
         cnn,
