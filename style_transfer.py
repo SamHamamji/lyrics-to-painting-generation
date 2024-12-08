@@ -12,7 +12,7 @@ def main(
     content_path: str,
     output_path: str,
     initial_image: str,
-    image_size: list[int],
+    image_size: list[int] | None,
     steps: int,
     style_weight: float,
     content_weight: float,
@@ -63,7 +63,7 @@ parser.add_argument("--output", type=str, required=True)
 parser.add_argument(
     "--initial_image", type=str, choices=["content", "noise"], default="content"
 )
-parser.add_argument("--image_size", type=int, nargs="+", default=256)
+parser.add_argument("--image_size", type=int, nargs="+", default=None)
 parser.add_argument("--steps", type=int, default=300)
 parser.add_argument("--style_weight", type=float, default=200000.0)
 parser.add_argument("--content_weight", type=float, default=1.0)

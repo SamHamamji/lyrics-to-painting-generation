@@ -7,22 +7,21 @@ from src.constants import device
 
 
 class ImageDataset(torch.utils.data.Dataset):
-    def __init__(self, image_size: list[int]):
-        self.loader = torchvision.transforms.Compose(
-            [
-                torchvision.transforms.Resize(image_size),
-                torchvision.transforms.ToTensor(),
-            ]
-        )
+    def __init__(self, image_size: list[int] | None):
+        super(ImageDataset, self).__init__()
 
-    def __getitem__(self, path: str):
+        self.loader = torchvision.transforms.ToTensor()
+
+        if image_size is not None:
+            self.loader = torchvision.transforms.Compose(
+                [torchvision.transforms.Resize(image_size), self.loader]
+            )
+
+    def __getitem__(self, path: str) -> torch.Tensor:
         image = PIL.Image.open(path)
 
-        image_tensor = torch.Tensor(self.loader(image)).unsqueeze(0)
+        image_tensor = self.loader(image).unsqueeze(0)  # type: ignore
         return image_tensor.to(device, torch.float)
-
-    def __len__(self):
-        return 0
 
 
 def save_image(tensor: torch.Tensor, path: str):
