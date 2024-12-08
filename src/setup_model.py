@@ -5,30 +5,21 @@ import torch
 from src.loss_layers import Content_Error_Loss, Style_Error_Loss
 from src.utils import Normalization
 
-from src.constants import (
-    cnn_norm_mean,
-    cnn_norm_std,
-    device,
-    content_default_layers,
-    style_default_layers,
-)
+from src.constants import cnn_norm_mean, cnn_norm_std, device
 
 
 def get_model_and_losses(
-    cnn_model,
-    style_image,
-    content_image,
-    content_layers=content_default_layers,
-    style_layers=style_default_layers,
+    cnn_model: torch.nn.Module,
+    style_image: torch.Tensor,
+    content_image: torch.Tensor,
+    content_layers: list[str],
+    style_layers: list[str],
 ):
     cnn_model = copy.deepcopy(cnn_model)
 
     content_loss_errors = []
     style_loss_errors = []
 
-    #############################
-    ### Your code starts here ###
-    #############################
     normalization = Normalization(mean=cnn_norm_mean, std=cnn_norm_std).to(device)
     model = torch.nn.Sequential(normalization)
 
@@ -60,9 +51,5 @@ def get_model_and_losses(
 
         else:
             model.append(layer)
-
-    #############################
-    ### Your code ends here   ###
-    #############################
 
     return model, style_loss_errors, content_loss_errors

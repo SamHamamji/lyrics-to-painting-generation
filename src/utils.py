@@ -1,3 +1,4 @@
+import math
 import torch
 import torchvision
 import PIL.Image
@@ -42,6 +43,38 @@ class Normalization(torch.nn.Module):
         return (img - self.mean) / self.std
 
 
-def get_img_optimizer(input_image):
+def resize_style_image(style_image: torch.Tensor, content_image: torch.Tensor):
+    if style_image.size(dim=1) != 3:
+        style_image = style_image.repeat(1, 3, 1, 1)
+    if content_image.size(dim=3) > style_image.size(dim=3):
+        pad_size = math.ceil(
+            (content_image.size(dim=3) - style_image.size(dim=3)) / 2.0
+        )
+        padding = torchvision.transforms.Pad(
+            (pad_size, pad_size), padding_mode="reflect"
+        )
+        style_image = padding(style_image)
+    if content_image.size(dim=2) > style_image.size(dim=2):
+        pad_size = math.ceil(
+            (content_image.size(dim=2) - style_image.size(dim=2)) / 2.0
+        )
+        padding = torchvision.transforms.Pad(
+            (0, 0, pad_size, pad_size), padding_mode="reflect"
+        )
+        style_image = padding(style_image)
+
+    centerCrop = torchvision.transforms.CenterCrop(
+        (content_image.size(dim=2), content_image.size(dim=3))
+    )
+    style_image = centerCrop(style_image)
+
+    assert (
+        style_image.size() == content_image.size()
+    ), "We need to import the style and content images at the same size."
+
+    return style_image
+
+
+def get_image_optimizer(input_image: torch.Tensor):
     optimizer = torch.optim.LBFGS([input_image])
     return optimizer

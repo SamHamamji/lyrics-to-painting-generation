@@ -1,43 +1,10 @@
 import argparse
 import torch
 import torchvision
-import math
 
-from src.utils import save_image, ImageDataset
+from src.utils import save_image, ImageDataset, get_image_optimizer, resize_style_image
 from src.optimize import run_optim
-from src.constants import device, style_weight, content_weight
-
-
-def resize_style_image(style_image: torch.Tensor, content_image: torch.Tensor):
-    if style_image.size(dim=1) != 3:
-        style_image = style_image.repeat(1, 3, 1, 1)
-    if content_image.size(dim=3) > style_image.size(dim=3):
-        pad_size = math.ceil(
-            (content_image.size(dim=3) - style_image.size(dim=3)) / 2.0
-        )
-        padding = torchvision.transforms.Pad(
-            (pad_size, pad_size), padding_mode="reflect"
-        )
-        style_image = padding(style_image)
-    if content_image.size(dim=2) > style_image.size(dim=2):
-        pad_size = math.ceil(
-            (content_image.size(dim=2) - style_image.size(dim=2)) / 2.0
-        )
-        padding = torchvision.transforms.Pad(
-            (0, 0, pad_size, pad_size), padding_mode="reflect"
-        )
-        style_image = padding(style_image)
-
-    centerCrop = torchvision.transforms.CenterCrop(
-        (content_image.size(dim=2), content_image.size(dim=3))
-    )
-    style_image = centerCrop(style_image)
-
-    assert (
-        style_image.size() == content_image.size()
-    ), "We need to import the style and content images at the same size."
-
-    return style_image
+from src.constants import device
 
 
 def main(
@@ -47,6 +14,8 @@ def main(
     initial_image: str,
     image_size: list[int],
     steps: int,
+    style_weight: float,
+    content_weight: float,
 ):
     if torch.cuda.is_available():
         print("Models moved to GPU.")
@@ -57,6 +26,7 @@ def main(
     style_image = dataset[style_path]
     content_image = dataset[content_path]
     style_image = resize_style_image(style_image, content_image)
+    optimizer = get_image_optimizer(content_image)
 
     cnn = (
         torchvision.models.vgg19(weights=torchvision.models.VGG19_Weights.IMAGENET1K_V1)
@@ -76,11 +46,10 @@ def main(
         content_image,
         style_image,
         input_image,
-        steps=steps,
-        style_weight=style_weight,
-        content_weight=content_weight,
-        use_content=True,
-        use_style=True,
+        steps,
+        optimizer,
+        style_weight,
+        content_weight,
     )
 
     save_image(output_image, output_path)
@@ -96,6 +65,8 @@ parser.add_argument(
 )
 parser.add_argument("--image_size", type=int, nargs="+", default=256)
 parser.add_argument("--steps", type=int, default=300)
+parser.add_argument("--style_weight", type=float, default=200000.0)
+parser.add_argument("--content_weight", type=float, default=1.0)
 
 
 if __name__ == "__main__":
@@ -108,4 +79,6 @@ if __name__ == "__main__":
         args.initial_image,
         args.image_size,
         args.steps,
+        args.style_weight,
+        args.content_weight,
     )
