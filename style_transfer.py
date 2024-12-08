@@ -5,7 +5,7 @@ import math
 
 from src.utils import save_image, ImageDataset
 from src.optimize import run_optim
-from src.constants import device, weight_style, weight_content
+from src.constants import device, style_weight, content_weight
 
 
 def resize_style_image(style_image: torch.Tensor, content_image: torch.Tensor):
@@ -46,6 +46,7 @@ def main(
     output_path: str,
     initial_image: str,
     image_size: list[int],
+    steps: int,
 ):
     if torch.cuda.is_available():
         print("Models moved to GPU.")
@@ -57,7 +58,11 @@ def main(
     content_image = dataset[content_path]
     style_image = resize_style_image(style_image, content_image)
 
-    cnn = torchvision.models.vgg19(pretrained=True).features.to(device).eval()
+    cnn = (
+        torchvision.models.vgg19(weights=torchvision.models.VGG19_Weights.IMAGENET1K_V1)
+        .features.to(device)
+        .eval()
+    )
 
     if initial_image == "content":
         input_image = content_image.clone()
@@ -71,9 +76,9 @@ def main(
         content_image,
         style_image,
         input_image,
-        number_steps=300,
-        weight_style=weight_style,
-        weight_content=weight_content,
+        steps=steps,
+        style_weight=style_weight,
+        content_weight=content_weight,
         use_content=True,
         use_style=True,
     )
@@ -90,9 +95,17 @@ parser.add_argument(
     "--initial_image", type=str, choices=["content", "noise"], default="content"
 )
 parser.add_argument("--image_size", type=int, nargs="+", default=256)
+parser.add_argument("--steps", type=int, default=300)
 
 
 if __name__ == "__main__":
     args = parser.parse_args()
 
-    main(args.style, args.content, args.output, args.initial_image, args.image_size)
+    main(
+        args.style,
+        args.content,
+        args.output,
+        args.initial_image,
+        args.image_size,
+        args.steps,
+    )
