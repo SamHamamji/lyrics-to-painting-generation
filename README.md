@@ -1,5 +1,8 @@
 # Painting generation from lyrics
 
+## Setup
+Add your OpenAI API key to the `.env` file.
+
 ## Usage
 Image generation:
 ```bash
