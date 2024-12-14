@@ -12,6 +12,9 @@ parser.add_argument("--max_retries", type=int, default=3)
 parser.add_argument("--image_size", type=str, default="1024x1024")
 parser.add_argument("--log_description", action="store_true")
 parser.add_argument("--log_image_url", action="store_true")
+parser.add_argument("--magical_atmosphere", action="store_true")
+parser.add_argument("--include_intricate_details", action="store_true")
+parser.add_argument("--style_by_artist", type=str, default=None)
 
 
 generating_scene_prompt = """
@@ -30,9 +33,17 @@ The following prompt has been rejected because it contains some text that violat
 Fix this scene description by ONLY tweaking the problematic part(s) and returning the rest WORD FOR WORD.
 """
 
-
-def get_scene_description_prompt(lyrics: str):
-    return generating_scene_prompt.format(lyrics=lyrics).strip()
+def get_scene_description_prompt(lyrics: str, magical_atmosphere: bool, include_intricate_details: bool, style_by_artist: str):
+    extra_instructions = []
+    if magical_atmosphere:
+        extra_instructions.append("Include a magical and enchanting atmosphere.")
+    if include_intricate_details:
+        extra_instructions.append("Ensure the scene contains intricate details and textures.")
+    if style_by_artist:
+        extra_instructions.append(f"Style the painting in the artistic style of {style_by_artist}.")
+    
+    extra_instructions_text = " ".join(extra_instructions)
+    return generating_scene_prompt.format(lyrics=lyrics, extra_instructions=extra_instructions_text).strip()
 
 
 def fix_scene_description_prompt(scene: str):
@@ -42,7 +53,8 @@ def fix_scene_description_prompt(scene: str):
 def generate_text(prompt: str):
     response = openai.chat.completions.create(
         model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
+        messages=[{"role": "system", "content": "You are an expert in analyzing song lyrics for artistic interpretation."},
+                  {"role": "user", "content": prompt}],
     )
 
     description = response.choices[0].message.content
@@ -82,8 +94,13 @@ if __name__ == "__main__":
 
     with open(args.lyrics_path, "r", encoding="utf-8") as file:
         song_lyrics = file.read()
-
-    prompt = get_scene_description_prompt(song_lyrics)
+        
+    prompt = get_scene_description_prompt(
+            song_lyrics, 
+            args.magical_atmosphere, 
+            args.include_intricate_details, 
+            args.style_by_artist
+        )
 
     for i in range(args.max_retries):
         try:
