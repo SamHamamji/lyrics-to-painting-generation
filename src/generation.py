@@ -1,5 +1,11 @@
-import requests
+import dotenv
 import openai
+import os
+import novita_client
+import requests
+
+dotenv.load_dotenv()
+openai.api_key = os.environ["OPENAI_API_KEY"]
 
 
 def generate_text(prompt: str):
@@ -43,8 +49,8 @@ def generate_image(prompt: str, image_size, log_url: bool):
     return response.content
 
 
-def generate_video(prompt: dict[str, str], api_key: str, log_url: bool):
-    client = novita_client.NovitaClient(api_key)
+def generate_video(prompt: dict[str, str], log_url: bool):
+    client = novita_client.NovitaClient(os.environ["NOVITA_API_KEY"])
     response = client.txt2video(
         model_name="dreamshaper_8_93211.safetensors",
         width=640,

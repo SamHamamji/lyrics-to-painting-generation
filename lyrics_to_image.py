@@ -1,7 +1,5 @@
 import argparse
-import os
 import openai
-import dotenv
 
 import src.prompts as prompts
 import src.generation as generation
@@ -21,9 +19,6 @@ parser.add_argument("--include_intricate_details", action="store_true")
 
 if __name__ == "__main__":
     args = parser.parse_args()
-
-    dotenv.load_dotenv()
-    openai.api_key = os.environ["OPENAI_API_KEY"]
 
     with open(args.lyrics, "r", encoding="utf-8") as file:
         song_lyrics = file.read()

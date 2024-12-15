@@ -1,6 +1,4 @@
 import argparse
-import os
-import dotenv
 import json
 
 import src.prompts as prompts
@@ -17,8 +15,6 @@ parser.add_argument("--log_url", action="store_true")
 if __name__ == "__main__":
     args = parser.parse_args()
 
-    dotenv.load_dotenv()
-
     with open(args.lyrics, "r", encoding="utf-8") as file:
         song_lyrics = file.read()
 
@@ -29,9 +25,7 @@ if __name__ == "__main__":
         print(f"Scene description: {frames_description}", end="\n\n")
     scene_frames: dict[str, str] = json.loads(frames_description)
 
-    video_bytes = generation.generate_video(
-        scene_frames, os.environ["NOVITA_API_KEY"], args.log_url
-    )
+    video_bytes = generation.generate_video(scene_frames, args.log_url)
 
     with open(args.output, "wb") as file:
         file.write(video_bytes)
