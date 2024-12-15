@@ -1,10 +1,10 @@
 import argparse
 import os
 import openai
-import requests
 import dotenv
 
 import src.prompts as prompts
+import src.generation as generation
 
 
 parser = argparse.ArgumentParser()
@@ -17,47 +17,6 @@ parser.add_argument("--log_image_url", action="store_true")
 parser.add_argument("--magical_atmosphere", action="store_true")
 parser.add_argument("--include_intricate_details", action="store_true")
 parser.add_argument("--style_by_artist", type=str, default=None)
-
-
-def generate_text(prompt: str):
-    response = openai.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are an expert in analyzing song lyrics for artistic interpretation.",
-            },
-            {"role": "user", "content": prompt},
-        ],
-    )
-
-    description = response.choices[0].message.content
-
-    if description is None:
-        raise ValueError(f"Scene description is None in response: {response}")
-
-    return description.strip()
-
-
-def generate_image(prompt: str, image_size, log_image_url: bool):
-    response = openai.images.generate(
-        prompt=prompt, model="dall-e-3", n=1, size=image_size
-    )
-
-    image_url = response.data[0].url
-
-    if image_url is None:
-        raise ValueError(f"Image url is None in response: {response}")
-
-    if log_image_url:
-        print(f"Image url: {image_url}")
-
-    response = requests.get(image_url, timeout=120)
-
-    if response.content is None:
-        raise ValueError(f"Image content is None in response: {response}")
-
-    return response.content
 
 
 if __name__ == "__main__":
@@ -78,10 +37,10 @@ if __name__ == "__main__":
 
     for i in range(args.max_retries):
         try:
-            scene_description = generate_text(prompt)
+            scene_description = generation.generate_text(prompt)
             if args.log_description:
                 print(f"Scene description: {scene_description}", end="\n\n")
-            image = generate_image(
+            image = generation.generate_image(
                 f"{scene_description}\n\nDo not include words in the generated image.",
                 args.image_size,
                 args.log_image_url,
