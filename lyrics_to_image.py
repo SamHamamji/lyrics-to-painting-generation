@@ -13,10 +13,10 @@ parser.add_argument("--output_path", type=str, required=True)
 parser.add_argument("--max_retries", type=int, default=3)
 parser.add_argument("--image_size", type=str, default="1024x1024")
 parser.add_argument("--log_description", action="store_true")
-parser.add_argument("--log_image_url", action="store_true")
+parser.add_argument("--log_url", action="store_true")
 parser.add_argument("--magical_atmosphere", action="store_true")
 parser.add_argument("--include_intricate_details", action="store_true")
-parser.add_argument("--style_by_artist", type=str, default=None)
+parser.add_argument("--artist", type=str, default=None)
 
 
 if __name__ == "__main__":
@@ -32,7 +32,7 @@ if __name__ == "__main__":
         song_lyrics,
         args.magical_atmosphere,
         args.include_intricate_details,
-        args.style_by_artist,
+        args.artist,
     )
 
     for i in range(args.max_retries):
@@ -43,7 +43,7 @@ if __name__ == "__main__":
             image = generation.generate_image(
                 f"{scene_description}\n\nDo not include words in the generated image.",
                 args.image_size,
-                args.log_image_url,
+                args.log_url,
             )
             break
         except openai.BadRequestError as e:
