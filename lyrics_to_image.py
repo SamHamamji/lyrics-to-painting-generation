@@ -8,15 +8,15 @@ import src.generation as generation
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--lyrics_path", type=str, required=True)
-parser.add_argument("--output_path", type=str, required=True)
-parser.add_argument("--max_retries", type=int, default=3)
+parser.add_argument("--lyrics", type=str, required=True)
+parser.add_argument("--output", type=str, required=True)
 parser.add_argument("--image_size", type=str, default="1024x1024")
+parser.add_argument("--artist", type=str, default=None)
+parser.add_argument("--max_retries", type=int, default=3)
 parser.add_argument("--log_description", action="store_true")
 parser.add_argument("--log_url", action="store_true")
 parser.add_argument("--magical_atmosphere", action="store_true")
 parser.add_argument("--include_intricate_details", action="store_true")
-parser.add_argument("--artist", type=str, default=None)
 
 
 if __name__ == "__main__":
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
     openai.api_key = os.environ["OPENAI_API_KEY"]
 
-    with open(args.lyrics_path, "r", encoding="utf-8") as file:
+    with open(args.lyrics, "r", encoding="utf-8") as file:
         song_lyrics = file.read()
 
     prompt = prompts.get_scene_description_prompt(
@@ -54,6 +54,6 @@ if __name__ == "__main__":
             print("Image generation rejected for content policy violation. Retrying...")
             prompt = prompts.get_scene_fixing_prompt(scene_description)
 
-    with open(args.output_path, "wb") as file:
+    with open(args.output, "wb") as file:
         file.write(image)
-    print(f"Image saved successfully at {args.output_path}")
+    print(f"Image saved successfully at {args.output}")

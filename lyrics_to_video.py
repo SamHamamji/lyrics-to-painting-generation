@@ -8,8 +8,8 @@ import src.generation as generation
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--lyrics_path", type=str, required=True)
-parser.add_argument("--output_path", type=str, required=True)
+parser.add_argument("--lyrics", type=str, required=True)
+parser.add_argument("--output", type=str, required=True)
 parser.add_argument("--log_description", action="store_true")
 parser.add_argument("--log_url", action="store_true")
 
@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     dotenv.load_dotenv()
 
-    with open(args.lyrics_path, "r", encoding="utf-8") as file:
+    with open(args.lyrics, "r", encoding="utf-8") as file:
         song_lyrics = file.read()
 
     prompt = prompts.get_video_generation_prompt(song_lyrics)
@@ -33,6 +33,6 @@ if __name__ == "__main__":
         scene_frames, os.environ["NOVITA_API_KEY"], args.log_url
     )
 
-    with open(args.output_path, "wb") as file:
+    with open(args.output, "wb") as file:
         file.write(video_bytes)
-    print(f"Video saved successfully at {args.output_path}")
+    print(f"Video saved successfully at {args.output}")
