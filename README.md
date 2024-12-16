@@ -5,7 +5,7 @@
 - Add your Novita and OpenAI API keys to the `.env` file
 - Download and unzip both datasets
 
-This step requires that your .kaggle.json file is set up accordingly.
+This step requires that your `.kaggle.json` file is set up accordingly.
 Note that the size of the two datasets sums up to 2.76 GB, using custom data works fine too.
 ```bash
 ./setup_datasets.sh
