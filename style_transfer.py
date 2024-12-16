@@ -68,7 +68,7 @@ def style_transfer(
         ax2.set_ylabel("Content loss (green)")
 
         lines = [line1, line2]
-        figure.legend(lines, [line.get_label() for line in lines])
+        figure.legend(lines, [line.get_label() for line in lines])  # type: ignore
         plt.tight_layout()
         plt.show()
 

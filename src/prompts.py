@@ -1,13 +1,16 @@
-generating_scene_prompt = """
-Provide a brief, vivid, scene description to be fed for a painting generation tool. The scene should capture the mood, themes, and imagery of the following lyrics:
+scene_description_prompt = """
+Provide a scene description to be used for painting generation.
+Explicitly mention that the target is a painting.
+The scene should represent the mood, themes, and imagery of the following song lyrics:
 
 '{lyrics}'
 
-Don't include inappropriate content at all!
+{extra_instructions}
 """
 
-fixing_scene_prompt = """
-The following prompt has been rejected because it contains some text that violates an image generation content policy.
+
+scene_fixing_prompt = """
+The following prompt has been rejected by a text-to-image model because its content has bees flagged as violating some content policy.
 
 '{scene}'
 
@@ -34,21 +37,28 @@ Your output should in json format with keys being frame_1, frame_2, ... the item
 
 
 def get_scene_description_prompt(
-    lyrics: str, magical_atmosphere: bool, include_intricate_details: bool, artist: str
+    lyrics: str,
+    magical_atmosphere: bool,
+    include_intricate_details: bool,
+    artist: str | None,
 ):
     extra_instructions = []
     if magical_atmosphere:
         extra_instructions.append("Include a magical and enchanting atmosphere.")
     if include_intricate_details:
         extra_instructions.append(
-            "Ensure the scene contains intricate details and textures."
+            "Ensure that the scene contains intricate details and textures."
         )
     if artist:
         extra_instructions.append(
-            f"Style the painting in the artistic style of {artist}."
+            f"Make sure integrate the specific style of {artist}, and to explicitly mention their name and style characteristics."
         )
+    extra_instructions += [
+        "Most importantly, don't include inappropriate content at all! This description should pass strict content policy.",
+        "Finally, do not include words in the generated image.",
+    ]
 
-    extra_instructions_text = " ".join(extra_instructions)
+    extra_instructions_text = "\n".join(extra_instructions)
     return scene_description_prompt.format(
         lyrics=lyrics, extra_instructions=extra_instructions_text
     ).strip()
@@ -58,5 +68,5 @@ def get_scene_fixing_prompt(scene: str):
     return scene_fixing_prompt.format(scene=scene)
 
 
-def get_video_generation_prompt(lyrics: str):
+def get_video_description_prompt(lyrics: str):
     return video_generation_prompt.format(lyrics=lyrics)

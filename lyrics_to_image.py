@@ -36,11 +36,7 @@ def generate_image_from_lyrics(
             scene_description = generation.generate_text(prompt)
             if log_description:
                 print(f"Scene description: {scene_description}", end="\n\n")
-            image = generation.generate_image(
-                f"{scene_description}\n\nDo not include words in the generated image.",
-                image_size,
-                log_url,
-            )
+            image = generation.generate_image(scene_description, image_size, log_url)
             break
         except openai.BadRequestError as error:
             if i == max_retries - 1:
