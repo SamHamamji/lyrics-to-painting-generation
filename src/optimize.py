@@ -20,6 +20,9 @@ def run_optim(
     input_image.requires_grad_()
     run_step = {"count": 0}
 
+    style_losses = []
+    content_losses = []
+
     def closure():
         optimizer.zero_grad()
         model(input_image)
@@ -27,15 +30,20 @@ def run_optim(
         total_style_loss = torch.stack(
             tuple(map(lambda err: err.loss, style_loss_errors))
         ).sum(0)
+        total_style_loss = total_style_loss.mul(style_weight)
 
         total_content_loss = torch.stack(
             tuple(map(lambda err: err.loss, content_loss_errors))
         ).sum(0)
+        total_content_loss = total_content_loss.mul(content_weight)
 
-        loss = total_style_loss * style_weight + total_content_loss * content_weight
+        loss = total_style_loss + total_content_loss
         loss.backward()
 
         run_step["count"] += 1
+
+        style_losses.append(total_style_loss.item())
+        content_losses.append(total_content_loss.item())
 
         print("\033[K" + f"Step: {run_step['count']}, Loss: {loss}", end="\r")
         return loss
@@ -48,4 +56,4 @@ def run_optim(
 
     print("\n")
 
-    return input_image
+    return input_image, (style_losses, content_losses)

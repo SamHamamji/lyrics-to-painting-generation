@@ -1,13 +1,14 @@
 import argparse
 import torch
 import torchvision
+import matplotlib.pyplot as plt
 
 from src.utils import save_image, ImageDataset, get_image_optimizer, resize_style_image
 from src.optimize import run_optim
 from src.constants import device
 
 
-def main(
+def style_transfer(
     style_paths: list[str],
     content_path: str,
     output_path: str,
@@ -16,6 +17,7 @@ def main(
     steps: int,
     style_weight: float,
     content_weight: float,
+    plot_loss: bool,
 ):
     if torch.cuda.is_available():
         print("Models moved to GPU.")
@@ -43,7 +45,7 @@ def main(
 
     optimizer = get_image_optimizer(input_image)
 
-    output_image = run_optim(
+    output_image, (style_losses, content_losses) = run_optim(
         cnn,
         content_image,
         style_images,
@@ -53,6 +55,22 @@ def main(
         style_weight,
         content_weight,
     )
+
+    if plot_loss:
+        figure, ax1 = plt.subplots()
+        ax1.set_xlabel("Steps")
+
+        (line1,) = ax1.plot(style_losses, "b-", label="Style loss")
+        ax1.set_ylabel("Style loss (blue)")
+
+        ax2 = ax1.twinx()
+        (line2,) = ax2.plot(content_losses, "g-", label="Content loss")
+        ax2.set_ylabel("Content loss (green)")
+
+        lines = [line1, line2]
+        figure.legend(lines, [line.get_label() for line in lines])
+        plt.tight_layout()
+        plt.show()
 
     save_image(output_image, output_path)
 
@@ -69,12 +87,13 @@ parser.add_argument("--image_size", type=int, nargs="+", default=None)
 parser.add_argument("--steps", type=int, default=300)
 parser.add_argument("--style_weight", type=float, default=200000.0)
 parser.add_argument("--content_weight", type=float, default=1.0)
+parser.add_argument("--plot_loss", action="store_true")
 
 
 if __name__ == "__main__":
     args = parser.parse_args()
 
-    main(
+    style_transfer(
         args.style,
         args.content,
         args.output,
@@ -83,4 +102,5 @@ if __name__ == "__main__":
         args.steps,
         args.style_weight,
         args.content_weight,
+        args.plot_loss,
     )
